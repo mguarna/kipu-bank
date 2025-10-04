@@ -30,4 +30,4 @@ Interaccion con el contrato
 
 Enlace de acceso al Block Explorer de Sepolia
 -------------------------------------------------
-Contrato desplegado en [red de test Sepolia]([https://sepolia.etherscan.io/tx/0x1df566d76e61fab34007282fc67b5d5a8dd4ceff2ff8a5c3697bd509796f788e](https://sepolia.etherscan.io/tx/0x460409b9b8958da98138488814f952345f44bbaf6f7628f94d6b8d128db123d5))
+Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/address/0x75f84549411a01a858d0424952d2da32da70042f#code)
