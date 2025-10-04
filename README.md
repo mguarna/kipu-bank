@@ -1,6 +1,6 @@
 # KipuBank - Entregable Modulo 2
 ## Descripcion del contrato
-El contrato kipubank.sol permite la interaccion con wallets para el almacenamiento de Ether.
+El contrato __kipubank.sol__ permite la interaccion con wallets para el almacenamiento de Ether.
 - Posee un limite de Ether a almacenar que se define al momento de su despliege.
 - Limita la maxima cantidad de Ether a extraer en cada solicitud de retirada
 - No limita el ingreso de Ether por wallet.
