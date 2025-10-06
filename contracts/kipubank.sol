@@ -7,7 +7,7 @@ pragma solidity 0.8.30;
 	*@author mguarna
 	*@custom:security Contrato con fines educativos. No usar en producción.
 */
-contract Kipubank {
+contract KipuBank {
 
 	/*///////////////////////
 					Variables
@@ -21,9 +21,11 @@ contract Kipubank {
     ///@notice variable para controlar el estado actual de los depositos
     uint256 private _bankCapStatus;
 
-    ///@notice variables para llevar el control del numero depositos y extracciones
-    uint256 totalWithdraws;
+    ///@notice variables para llevar el control del numero total de depositos
     uint256 totalDeposits;
+    
+    ///@notice variables para llevar el control del numero total de extracciones
+    uint256 totalWithdraws;
 
     //@notice variable para blockear intentos de reentrancia
     bool private reentrancyLock;
@@ -34,16 +36,29 @@ contract Kipubank {
 	/*///////////////////////
 						Events
 	////////////////////////*/
-    ///@notice evento emitido cuando el deposito/extraccion fue exitoso
-	event OperationSucceed(address wallet, string msg);
+    ///@notice evento emitido cuando el deposito fue exitoso
+	event DepositSuccessful(address wallet, string msg);
+
+    ///@notice evento emitido cuando la extraccion fue exitosa
+    event TransferSuccessful(address wallet, string msg);
 
 	/*///////////////////////
 						Errors
 	///////////////////////*/
 	///@notice error emitido cuando falla el intento de deposito de ETH
 	error DepositFailed(uint256 permitted, uint256 amount);
-	///@notice error emitido cuando falla el intento de extraccion de ETH
+	
+    ///@notice error emitido cuando falla el intento de extraccion de ETH
 	error WithdrawFailed(uint256 maxAllowed, uint256 balance, uint256 amount);
+
+    ///@notice error emitido para notificar multiples intentos de ingreso
+    error ReentrancyDenied(string errMessage);
+
+    ///@notice error emitido cuando falla la transferencia
+    error TransferFailed(bytes err);
+
+    ///@notice error emitido cuando se intenta interactuar con el contrato mediante un llamado invalido
+    error InvalidCallData(bytes receivedData);
 	
 	/*///////////////////////
 					Functions
@@ -52,15 +67,18 @@ contract Kipubank {
     {
 		_withdrawMaxAllowed = withdrawMaxAllowed;
         _bankCap = bankCap;
-        _bankCapStatus = 0;
-        totalWithdraws = 0;
-        totalDeposits = 0;
-        reentrancyLock = false;
 	}
 	
+    /**
+    *@notice función para evitar intentos maliciosos de exploit del contrato
+	*/
 	modifier PreventReentrancy()
     {
-        require(!reentrancyLock, "Reentrancy denied");
+        if(reentrancyLock)
+        {
+            revert ReentrancyDenied("Reentrancy denied");
+        }
+
         reentrancyLock = true;
         _;
         reentrancyLock = false;
@@ -70,20 +88,25 @@ contract Kipubank {
 	receive() external payable
     {
         // Chequear capacidad de deposito de KipuBank
-        require(_InternalChecks(true, msg.value), DepositFailed(_bankCap - _bankCapStatus, msg.value));
+        if (!_InternalChecks(true, msg.value))
+        {
+           revert DepositFailed(_bankCap - _bankCapStatus, msg.value);
+        }
 
         // Actualizar billetera y emitir evento
 		vault[msg.sender] += msg.value;
-		emit OperationSucceed(msg.sender, "Deposito exitoso");
+		emit DepositSuccessful(msg.sender, "Deposito exitoso");
 
         // Actualizar variables de estado para trackeo interno
         totalDeposits++;
         _bankCapStatus += msg.value;
     }
-
-    ///@notice función para recibir ETH directamente con datos de entrada (msg.data valido) pero 
-    // no hay coincidencia con otras funciones - No implemento fallback
-	fallback() external{}
+  
+    ///@notice función fallback no permitida para recibir ETH. Rechaza el deposito.
+	fallback() external payable 
+    {
+        revert InvalidCallData(msg.data);
+    }
 	
 	/**
 		*@notice función para recibir ETH
@@ -92,11 +115,14 @@ contract Kipubank {
 	function Deposit() external payable 
     {
         // Chequear capacidad de deposito de KipuBank
-        require(_InternalChecks(true, msg.value), DepositFailed(_bankCap - _bankCapStatus, msg.value));
+        if(!_InternalChecks(true, msg.value))
+        {
+            revert DepositFailed(_bankCap - _bankCapStatus, msg.value);
+        }
 
         // Actualizar billetera y emitir evento
 		vault[msg.sender] += msg.value;
-		emit OperationSucceed(msg.sender, "Deposito realizado con exito");
+		emit DepositSuccessful(msg.sender, "Deposito realizado con exito");
 
         // Actualizar variables de estado para trackeo interno
         totalDeposits++;
@@ -111,15 +137,23 @@ contract Kipubank {
     function Withdraw(uint256 amount) external PreventReentrancy 
     {
         // Chequear limite de retiro
-        require(_InternalChecks(false, amount), WithdrawFailed(_withdrawMaxAllowed, vault[msg.sender], amount));
+        if(!_InternalChecks(false, amount))
+        {
+            revert WithdrawFailed(_withdrawMaxAllowed, vault[msg.sender], amount);
+        }
         
         // Actualizar saldo
         vault[msg.sender] -= amount;
         
         // Proceder con el envio de ETH
-        (bool succeed, ) = msg.sender.call{value: amount}("");
-        require(succeed, "Transferencia fallida");
-        emit OperationSucceed(msg.sender, "Retiro realizado con exito");
+        (bool succeed, bytes memory err) = msg.sender.call{value: amount}("");
+        
+        if(!succeed)
+        {
+            revert TransferFailed(err);
+        }
+
+        emit TransferSuccessful(msg.sender, "Retiro realizado con exito");
 
         // Actualizar variables de estado para trackeo interno
         totalWithdraws++;
@@ -165,4 +199,3 @@ contract Kipubank {
         return vault[msg.sender];
     }
 }
-
