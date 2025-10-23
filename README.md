@@ -24,7 +24,7 @@ ETH, definido durante el despliege del contrato, y que mantenga el saldo de ETH 
 - La wallet que interactua con el contrato puede ver el saldo en USD
 - La wallet que interactua con el contrato puede ver sus ETH, USDC y si ha sido granteado con un NFT
 
-Caracteristicas principales del contrato:
+#### Caracteristicas principales del contrato
 - Posee un limite de Ether a almacenar
 - Limita la maxima cantidad de Ether/USDC a extraer en cada solicitud de retirada
 - No limita el ingreso de Ether/USDC por wallet.
