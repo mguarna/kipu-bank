@@ -32,6 +32,9 @@ ETH, definido durante el despliege del contrato, y que mantenga el saldo de ETH 
 - Implementa errores para notificar depositos y/o extracciones fallidas
 - Permite visualizar el saldo actual de la wallet que interactua con el contrato
 
+Enlace de acceso al Block Explorer de Sepolia
+-------------------------------------------------
+Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/tx/0x454c042ea4308c9e1b39665bb81b2bfc039c97c6182f26d5d9a4c1081ddc5780)
 
 # KipuBank - Entregable Modulo 2
 ## Descripcion del contrato
