@@ -14,8 +14,8 @@
 
 #### Premiacion con NFTs
 - La premiacion con NFTs es solo valida para wallets que depositen ETH. La condicion es que la wallet realice un deposito minimo de 
-ETH, definido durante el despliege del contrato, y que mantenga el saldo de ETH minimo al menos por el tiempo TIME_LAPSED_TO_GRANT_NFT. 
-Se definio a TIME_LAPSED_TO_GRANT_NFT en 2 minutos para hacer pruebas. Se espera que este valor reprepesente un lapso de tiempo mayor. Ej: 3 meses.
+ETH, definido durante el despliege del contrato, y que mantenga el saldo de ETH minimo al menos por el tiempo _TIME_LAPSED_TO_GRANT_NFT_.
+  Se definio a _TIME_LAPSED_TO_GRANT_NFT_ en 2 minutos para hacer pruebas. Se espera que este valor reprepesente un lapso de tiempo mayor. Ej: 3 meses.
 - Solo se emite un NFT por wallet 
 - KipuBank dispone de 4 NFTs en total para otorgar
 - En caso de otorgar el NFT se emite un evento
