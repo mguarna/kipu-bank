@@ -150,6 +150,9 @@ contract KipuBankV2 is Ownable {
     error TransferFailed(bytes err);
 
     ///@notice error emitido cuando se intenta interactuar con el contrato mediante un llamado invalido
+    error InvalidReceiveCall(string errMessage);
+
+    ///@notice error emitido cuando se intenta interactuar con el contrato mediante un llamado invalido
     error InvalidCallData(bytes receivedData);
 
     ///@notice error emitido cuando el retorno del oráculo es incorrecto
@@ -236,10 +239,10 @@ contract KipuBankV2 is Ownable {
         External functions
     ///////////////////////*/
     
-    ///@notice función para recibir solamente ETH sin datos de entrada (msg.data esta vacio)
+    ///@notice función fallback no permitida para recibir ETH. Rechaza el deposito.
 	receive() external payable
     {
-        _Deposit(Token.TOKEN_ETH);
+        revert InvalidReceiveCall("It's not possible to transfer ETH this way");
     }
   
     ///@notice función fallback no permitida para recibir ETH. Rechaza el deposito.
@@ -250,33 +253,40 @@ contract KipuBankV2 is Ownable {
 	
 	/**
 		*@notice función para recibir ETH
-		*@dev esta función emite un evento para informar el correcto ingreso de ETH.
+		*@notice esta función emite un evento para informar el correcto ingreso de ETH.
 	*/
 	function DepositEth() external payable 
     {
-        _Deposit(Token.TOKEN_ETH);
+        _Deposit(Token.TOKEN_ETH, msg.value);
 	}
 
     /**
-		*@notice función para recibir USDC
-		*@dev esta función emite un evento para informar el correcto ingreso de USDC.
-	*/
-	function DepositUsdc() external payable 
-    {
-        _Deposit(Token.TOKEN_USDC);
-	}
+     * @notice función externa para recibir depósitos de tokens USDC
+     * @notice esta función emite un evento para informar el correcto ingreso de USDC.
+     * @param _amount la cantidad a ser depositada.
+     */
+    function DepositUsdc(uint256 _amount) external {
+
+        uint256 allowance_ = _iUsdc.allowance(msg.sender, address(this));
+        if (allowance_ < _amount) 
+        {
+            revert("DepositUsdc: allowance insufficient");
+        }
+
+         _Deposit(Token.TOKEN_USDC, _amount);
+    }
 
     /**
 		*@notice función para retirar ETH
-        *@param amount es el monto a retirar
+        *@param _amount es el monto a retirar
 		*@dev esta función debe emitir un evento informando el correcto egreso de ETH.
 	*/
-    function WithdrawEth(uint256 amount) external PreventReentrancy 
+    function WithdrawEth(uint256 _amount) external PreventReentrancy 
     {
         // Chequear limite de retiro
-        if(!_InternalChecks(false, amount, Token.TOKEN_ETH))
+        if(!_InternalChecks(false, _amount, Token.TOKEN_ETH))
         {
-            revert WithdrawFailedEth(_withdrawMaxAllowedEth, vault[ethAddr][msg.sender].amount, amount);
+            revert WithdrawFailedEth(_withdrawMaxAllowedEth, vault[ethAddr][msg.sender].amount, _amount);
         }
         
         // Chequear y premiar fidelidad
@@ -286,7 +296,7 @@ contract KipuBankV2 is Ownable {
         }
 
         // Actualizar saldo
-        vault[ethAddr][msg.sender].amount -= amount;
+        vault[ethAddr][msg.sender].amount -= _amount;
 
         if(vault[ethAddr][msg.sender].amount < vault[ethAddr][msg.sender].minBalance)
         {
@@ -294,7 +304,7 @@ contract KipuBankV2 is Ownable {
         }
         
         // Proceder con el envio de ETH
-        (bool succeed, bytes memory err) = msg.sender.call{value: amount}("");
+        (bool succeed, bytes memory err) = msg.sender.call{value: _amount}("");
         
         if(!succeed)
         {
@@ -305,27 +315,27 @@ contract KipuBankV2 is Ownable {
 
         // Actualizar variables de estado para trackeo interno
         _totalWithdrawsKipuBank++;
-        _bankCapStatus -= amount;
+        _bankCapStatus -= _amount;
     }
 
     /**
 		*@notice función para retirar USDC
-        *@param amount es el monto a retirar
+        *@param _amount es el monto a retirar
 		*@dev esta función debe emitir un evento informando el correcto egreso de USDC.
 	*/
-    function WithdrawUsdc(uint256 amount) external PreventReentrancy 
+    function WithdrawUsdc(uint256 _amount) external PreventReentrancy 
     {
         // Chequear limite de retiro
-        if(!_InternalChecks(false, amount, Token.TOKEN_USDC))
+        if(!_InternalChecks(false, _amount, Token.TOKEN_USDC))
         {
-            revert WithdrawFailedUsdc(ethToUsdc(_withdrawMaxAllowedEth), vault[usdcAddr][msg.sender].amount, amount);
+            revert WithdrawFailedUsdc(ethToUsdc(_withdrawMaxAllowedEth), vault[usdcAddr][msg.sender].amount, _amount);
         }
 
         // Actualizar saldo
-        vault[usdcAddr][msg.sender].amount -= amount;
+        vault[usdcAddr][msg.sender].amount -= _amount;
 
         // Proceder con el envio de USDC
-        (bool succeed, bytes memory err) = msg.sender.call{value: amount}("");
+        (bool succeed, bytes memory err) = msg.sender.call{value: _amount}("");
         
         if(!succeed)
         {
@@ -336,7 +346,7 @@ contract KipuBankV2 is Ownable {
 
         // Actualizar variables de estado para trackeo interno
         _totalWithdrawsKipuBank++;
-        _bankCapStatus -= amount;
+        _bankCapStatus -= _amount;
     }
 
     /**
@@ -442,7 +452,7 @@ contract KipuBankV2 is Ownable {
     /**
         * @notice función interna que maneja el deposito de tokens
     */
-    function _Deposit(Token token) private
+    function _Deposit(Token token, uint256 _amount) private
     {
         address addr = ethAddr;
         if(token == Token.TOKEN_USDC)
@@ -451,15 +461,15 @@ contract KipuBankV2 is Ownable {
         }
 
         // Chequear capacidad de deposito de KipuBank
-        if(!_InternalChecks(true, msg.value, token))
+        if(!_InternalChecks(true, _amount, token))
         {
             if(token == Token.TOKEN_ETH)
             {
-                revert DepositFailedEth(_bankCap - _bankCapStatus, msg.value, _minDepositRequiredFirstTimeEth);
+                revert DepositFailedEth(_bankCap - _bankCapStatus, _amount, _minDepositRequiredFirstTimeEth);
             }
             else if(token == Token.TOKEN_USDC)
             {
-                revert DepositFailedUsdc(ethToUsdc(_bankCap - _bankCapStatus), msg.value);
+                revert DepositFailedUsdc(ethToUsdc(_bankCap - _bankCapStatus), _amount);
             }
         }
 
@@ -484,7 +494,7 @@ contract KipuBankV2 is Ownable {
         }
 
         // Actualizar billetera y emitir evento
-		vault[addr][msg.sender].amount += msg.value;
+		vault[addr][msg.sender].amount += _amount;
 		emit DepositSuccessful(msg.sender, "Deposito realizado con exito");
 
         // Actualizar totalDeposits para trackeo interno
@@ -493,11 +503,13 @@ contract KipuBankV2 is Ownable {
         // Actualizar saldo de KipuBank para trackeo interno
         if(token == Token.TOKEN_ETH)
         {
-            _bankCapStatus += msg.value;
+            _bankCapStatus += _amount;
         }        
         else if(token == Token.TOKEN_USDC)
         {
-            _bankCapStatus += usdcToEth(msg.value);
+            _bankCapStatus += usdcToEth(_amount);
+
+            _iUsdc.safeTransferFrom(msg.sender, address(this), _amount);
         }
     }
 

@@ -34,7 +34,7 @@ ETH, definido durante el despliege del contrato, y que mantenga el saldo de ETH 
 
 Enlace de acceso al Block Explorer de Sepolia
 -------------------------------------------------
-Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/tx/0x454c042ea4308c9e1b39665bb81b2bfc039c97c6182f26d5d9a4c1081ddc5780)
+Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/address/0xc1A98e2a659D8b68C1155102206840CF837d3AaA)
 
 # KipuBank - Entregable Modulo 2
 ## Descripcion del contrato
