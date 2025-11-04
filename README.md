@@ -2,13 +2,16 @@
 ## Descripcion del contrato
 
 ### Mejoras especificas de la V2
-- El contrato __kipubankv2.sol__ permite la interaccion con wallets para el almacenamiento/extraccion de Ether y USDC.
-- El contrato dispone de un owner que puede realizar funciones especificas
-- El contrato otorga NFTs a modo de premio por fidelidad 
+- El contrato __kipubankv2.sol__ permite la interaccion con wallets para el almacenamiento/extraccion de Ether y tokens ERC20.
+- El contrato dispone de un owner que puede realizar funciones especificas:
+  - incrementar/disminuir la capacidad de KipuBank
+  - agregar, habilitar y deshabilitar tokens ERC20
+- El contrato otorga NFTs a modo de premio por fidelidad en base a los Ether almacenados
 
 #### Funciones del owner
 - Por defecto puede actualizar la wallet del ownership
 - Tiene la posibilidad de modificar el limite total de ETH que KipuBank puede almacenar
+- Puede agregar nuevos tokens ERC20 asi como tambien habilitarlos y deshabilitarlos
 - Puede chequear el limite actual, el saldo actual de depositos en ETH, la cantidad total de extracciones y de depositos
 - Puede revisar wallets y observar si alguna es apta para recibir un NFT, cantidad de NFTs otorgados por KipuBank y si hay NFTs disponibles para otorgar
 
@@ -21,11 +24,12 @@ ETH, definido durante el despliege del contrato, y que mantenga el saldo de ETH 
 - En caso de otorgar el NFT se emite un evento
 
 #### Mejoras adicionales
-- La wallet que interactua con el contrato puede ver el saldo en USD
-- La wallet que interactua con el contrato puede ver sus ETH, USDC y si ha sido granteado con un NFT
+- La wallet que interactua con el contrato puede ver el saldo de tokens ERC20
+- La wallet que interactua con el contrato puede ver sus ETH y si ha sido granteado con un NFT
 
 #### Caracteristicas principales del contrato
-- Posee un limite de Ether a almacenar
+- Chequea validez de deposito/extraccion de tokens ERC20
+- Posee un limite de USD a almacenar
 - Limita la maxima cantidad de Ether/USDC a extraer en cada solicitud de retirada
 - No limita el ingreso de Ether/USDC por wallet.
 - Implementa eventos para notificar depositos y/o extracciones correctas
