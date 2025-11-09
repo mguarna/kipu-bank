@@ -14,6 +14,10 @@ A la funcion de chequeo se le agrega un 5% de cantidad de USDC que se depositari
   - Chequeo general de Kipubank (solo owner)
   - Cambio de limite de almacenamiento de USDC de Kipubank (solo owner)
 
+### Cuestiones a mejorar en futuras versiones de kipubank
+- La wallet que deposita tanto Ether como tokens ERC20 no puede corroborar el monto de USDC a obtener producto del swap es decir, cuando se ingresan los tokens el contrato hace la conversion de forma automatica sin solicitar confirmacion del monto a reicibir en USDC.
+- La wallet que deposita tampoco puede establecer el limite de gas a utilizar en el swap.
+
 Enlace de acceso al Block Explorer de Sepolia
 -------------------------------------------------
 Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/address/0xaf8aB759C50AB8f69b891fb4B0eca9E4cA0823EE#events)
