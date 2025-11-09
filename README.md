@@ -25,6 +25,7 @@ Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/addres
 **IMPORTANTE:** No ha sido posible verificar el contrato desde Remix a pesar de varios intentos, siempre se obtuvo una diferencia de bytes. API URL utilizada de Sepolia: https://api.etherscan.io/v2.
 
 Direccion del contrato: 0xaf8aB759C50AB8f69b891fb4B0eca9E4cA0823EE
+
 Input del constructor:
 - withdrawMaxAllowed = 60000000;
 - bankCap = 300000000;
