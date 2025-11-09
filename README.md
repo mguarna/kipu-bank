@@ -18,6 +18,13 @@ A la funcion de chequeo se le agrega un 5% de cantidad de USDC que se depositari
 - La wallet que deposita tanto Ether como tokens ERC20 no puede corroborar el monto de USDC a obtener producto del swap es decir, cuando se ingresan los tokens el contrato hace la conversion de forma automatica sin solicitar confirmacion del monto a reicibir en USDC.
 - La wallet que deposita tampoco puede establecer el limite de gas a utilizar en el swap.
 
+**Pruebas:**
+- El contrato fue testeado con deposito de Ether, USDC y LINK.
+- El contrato fue testeado con retiro de USDC.
+
+- Maximo monto a retirar por transaccion: 60 USDC
+- Capacidad de KipuBank: 300 USDC
+
 Enlace de acceso al Block Explorer de Sepolia
 -------------------------------------------------
 Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/address/0xaf8aB759C50AB8f69b891fb4B0eca9E4cA0823EE#events)
@@ -32,9 +39,6 @@ Input del constructor:
 - owner = 0x1D32FEDB0ed19584921221F3fAF148bD4128Ea70;
 - uniswapV2Router = 0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3;
 
-**Pruebas:**
-- El contrato fue testeado con deposito de Ether, USDC y LINK.
-- El contrato fue testeado con retiro de USDC.
 
 # KipuBankV2 - Entregable Modulo 3
 ## Descripcion del contrato
