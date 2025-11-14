@@ -35,7 +35,7 @@ A la funcion de chequeo se le agrega un 5% de cantidad de USDC que se depositari
 
 Enlace de acceso al Block Explorer de Sepolia
 -------------------------------------------------
-Contrato desplegado en [red de test Sepolia](hhttps://sepolia.etherscan.io/address/0xEA70307E1c850AEE32C3aB1f8cc4c2366Beda4f1)
+Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/address/0xEA70307E1c850AEE32C3aB1f8cc4c2366Beda4f1)
 
 **IMPORTANTE:** No ha sido posible verificar el contrato desde Remix a pesar de varios intentos, siempre se obtuvo una diferencia de bytes. API URL utilizada de Sepolia: https://api.etherscan.io/v2.
 
