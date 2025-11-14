@@ -18,26 +18,38 @@ A la funcion de chequeo se le agrega un 5% de cantidad de USDC que se depositari
 - La wallet que deposita tanto Ether como tokens ERC20 no puede corroborar el monto de USDC a obtener producto del swap es decir, cuando se ingresan los tokens el contrato hace la conversion de forma automatica sin solicitar confirmacion del monto a reicibir en USDC.
 - La wallet que deposita tampoco puede establecer el limite de gas a utilizar en el swap.
 
-**Pruebas:**
-- El contrato fue testeado con deposito de Ether, USDC y LINK.
-- El contrato fue testeado con retiro de USDC.
+**Pruebas manuales:**
+- Se utilizo forge / anvil para hacer diferentes operaciones del contrato:
+  - El contrato fue testeado con deposito de Ether, USDC y LINK.
+  - El contrato fue testeado con retiro de USDC.
+  - Chequeo de maximo de retiro permitido
+    - Maximo monto a retirar por transaccion: 60 USDC
+  - Chequeo de balance de kipubank
+    - Capacidad de KipuBank: 300 USDC
 
-- Maximo monto a retirar por transaccion: 60 USDC
-- Capacidad de KipuBank: 300 USDC
+**Pruebas con scripts:**
+- Se provee del script __kipubankv3Test.t.sol__ para simular el deposito de ERC20
+  - Disponible en test/kipubankv3Test.t.sol
+  - Correr con forge test -vv
+
 
 Enlace de acceso al Block Explorer de Sepolia
 -------------------------------------------------
-Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/address/0xaf8aB759C50AB8f69b891fb4B0eca9E4cA0823EE#events)
+Contrato desplegado en [red de test Sepolia](hhttps://sepolia.etherscan.io/address/0xEA70307E1c850AEE32C3aB1f8cc4c2366Beda4f1)
 
 **IMPORTANTE:** No ha sido posible verificar el contrato desde Remix a pesar de varios intentos, siempre se obtuvo una diferencia de bytes. API URL utilizada de Sepolia: https://api.etherscan.io/v2.
 
-Direccion del contrato: 0xaf8aB759C50AB8f69b891fb4B0eca9E4cA0823EE
+Direccion del contrato: 0xEA70307E1c850AEE32C3aB1f8cc4c2366Beda4f1
+
+**Script para despliegue del contrato en red sepolia**
+- Disponible en script/kipubankv3_auto.sol
 
 Input del constructor:
 - withdrawMaxAllowed = 60000000;
 - bankCap = 300000000;
 - owner = 0x1D32FEDB0ed19584921221F3fAF148bD4128Ea70;
 - uniswapV2Router = 0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3;
+- usdc = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
 
 
 # KipuBankV2 - Entregable Modulo 3

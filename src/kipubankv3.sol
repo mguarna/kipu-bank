@@ -37,7 +37,6 @@ interface IUniswapV2Router02 {
         external
         view
         returns (uint[] memory amounts);
-
 }
 
 /**
@@ -65,11 +64,8 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
 					Variables
 	///////////////////////*/
 
-	///@notice ETH Address - Base
-    address private constant eth = address(0x0000000000000000000000000000000000000000);
-
     ///@notice USDC Address in Sepolia
-    address private constant usdc = address(0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238);
+    address private immutable usdc;
 
     ///@notice WETH Address in Sepolia
     address private immutable weth;
@@ -150,6 +146,7 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
         , uint256 bankCap
         , address owner
         , address router
+        , address usdc_addr
     ) Ownable(owner)
     {
 		_withdrawMaxAllowed = withdrawMaxAllowed;
@@ -159,6 +156,8 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
         ROUTER = IUniswapV2Router02(router);
 
         weth = ROUTER.WETH();
+
+        usdc = address(usdc_addr);
 	}
 
     /*///////////////////////
