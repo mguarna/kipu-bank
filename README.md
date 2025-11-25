@@ -14,10 +14,6 @@ A la funcion de chequeo se le agrega un 5% de cantidad de USDC que se depositari
   - Chequeo general de Kipubank (solo owner)
   - Cambio de limite de almacenamiento de USDC de Kipubank (solo owner)
 
-### Cuestiones a mejorar en futuras versiones de kipubank
-- La wallet que deposita tanto Ether como tokens ERC20 no puede corroborar el monto de USDC a obtener producto del swap es decir, cuando se ingresan los tokens el contrato hace la conversion de forma automatica sin solicitar confirmacion del monto a reicibir en USDC.
-- La wallet que deposita tampoco puede establecer el limite de gas a utilizar en el swap.
-
 **Pruebas manuales:**
 - Se utilizo forge / anvil para hacer diferentes operaciones del contrato:
   - El contrato fue testeado con deposito de Ether, USDC y LINK.
@@ -28,14 +24,28 @@ A la funcion de chequeo se le agrega un 5% de cantidad de USDC que se depositari
     - Capacidad de KipuBank: 300 USDC
 
 **Pruebas con scripts:**
-- Se provee del script __kipubankv3Test.t.sol__ para simular el deposito de ERC20
+- Se provee del script __kipubankv3Test.t.sol__ para simular el deposito de ERC20 y Ethers
   - Disponible en test/kipubankv3Test.t.sol
   - Correr con forge test -vv
+
+- Los tests arrojaron una cobertura superior al 50%
+  - Correr con forge coverage
+╭----------------------------+-----------------+------------------+---------------+---------------╮
+| File                       | % Lines         | % Statements     | % Branches    | % Funcs       |
++=================================================================================================+
+| script/kipubankv3_auto.sol | 0.00% (0/10)    | 0.00% (0/8)      | 100.00% (0/0) | 0.00% (0/2)   |
+|----------------------------+-----------------+------------------+---------------+---------------|
+| src/kipubankv3.sol         | 58.96% (79/134) | 67.18% (88/131)  | 27.27% (6/22) | 53.85% (7/13) |
+|----------------------------+-----------------+------------------+---------------+---------------|
+| test/BaseForkedTest.t.sol  | 100.00% (14/14) | 100.00% (14/14)  | 100.00% (0/0) | 100.00% (1/1) |
+|----------------------------+-----------------+------------------+---------------+---------------|
+| Total                      | 58.86% (93/158) | 66.67% (102/153) | 27.27% (6/22) | 50.00% (8/16) |
+╰----------------------------+-----------------+------------------+---------------+---------------╯
 
 
 Enlace de acceso al Block Explorer de Sepolia
 -------------------------------------------------
-Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/address/0xEA70307E1c850AEE32C3aB1f8cc4c2366Beda4f1)
+Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/address/0x0097E99E0d1f58A54cC5aB690c438ba544727DB8)
 
 **IMPORTANTE:** No ha sido posible verificar el contrato desde Remix a pesar de varios intentos, siempre se obtuvo una diferencia de bytes. API URL utilizada de Sepolia: https://api.etherscan.io/v2.
 

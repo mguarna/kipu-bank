@@ -64,12 +64,12 @@ abstract contract BaseForkedTest is Test {
         deal(WETH_ADDRESS, FAKE_ACCOUNT, WETH_INITIAL_AMOUNT);
 
         // Fond account with native Ether
-        //vm.deal(FAKE_ACCOUNT, WETH_INITIAL_AMOUNT);
+        vm.deal(FAKE_ACCOUNT, WETH_INITIAL_AMOUNT);
 
         console.log("Fork created with RPC:", rpc);
         console.log("KipuBankV3 deployed:", address(sKipu));
 
-        // Balancs
+        // Balances
         console.log("WETH balance:", weth.balanceOf(FAKE_ACCOUNT));
         console.log("USDC balance:", usdc.balanceOf(FAKE_ACCOUNT));
         console.log("LINK balance:", link.balanceOf(FAKE_ACCOUNT));

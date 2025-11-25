@@ -7,41 +7,81 @@ import { console } from "forge-std/console.sol";
 
 contract KipuBankV3Test is BaseForkedTest {
 
-    // TESTS:
-    //  - ERC20 -> USDC
     function test_DepositErc20() public {
 
-        uint256 amountIn = USDC_INITIAL_AMOUNT;
-        //uint256 amountIn = WETH_INITIAL_AMOUNT;
-        //uint256 amountIn = LINK_INITIAL_AMOUNT;
+        // Array of 3 elements to store tokens
+        uint256[3] memory amountIn = [
+            uint256(USDC_INITIAL_AMOUNT),
+            uint256(WETH_INITIAL_AMOUNT),
+            uint256(LINK_INITIAL_AMOUNT)
+        ];
 
-        console.log("Starting test");
+        // Array of 3 elements to store address of tokens
+        address[3] memory token = [
+            address(USDC_ADDRESS),
+            address(WETH_ADDRESS),
+            address(LINK_ADDRESS)
+        ];
 
-        // Test with FAKE_ACCOUNT
-        vm.startPrank(FAKE_ACCOUNT);
+        // Array of 3 elements to store the name of each token
+        string[3] memory tokenName = [
+            "USDC",
+            "WETH",
+            "LINK"
+        ];
 
-        // Previously: Approve swap to transfer WETH from FAKE_ACCOUNT
-        IERC20(USDC_ADDRESS).approve(address(sKipu), amountIn);
-        //IERC20(WETH_ADDRESS).approve(address(sKipu), amountIn);
-        //IERC20(LINK_ADDRESS).approve(address(sKipu), amountIn);
+        for(uint256 i = 0; i < 3; i++)
+        {
+            console.log("Starting test of token %s", tokenName[i]);
 
-        //uint256 usdcBefore = usdc.balanceOf(FAKE_ACCOUNT);
-        uint256 usdcBefore = sKipu.balanceOf(FAKE_ACCOUNT);
+            // Test with FAKE_ACCOUNT
+            vm.startPrank(FAKE_ACCOUNT);
 
-        // Call to make a ERC20 deposit.
-        sKipu.DepositErc20(amountIn, USDC_ADDRESS);
-        //sKipu.DepositErc20(amountIn, WETH_ADDRESS);
-        //sKipu.DepositErc20(amountIn, LINK_ADDRESS);
+            // Previously: Approve swap to transfer WETH from FAKE_ACCOUNT
+            IERC20(token[i]).approve(address(sKipu), amountIn[i]);
 
-        //uint256 usdcAfter = usdc.balanceOf(FAKE_ACCOUNT);
-        uint256 usdcAfter = sKipu.balanceOf(FAKE_ACCOUNT);
+            //uint256 usdcBefore = usdc.balanceOf(FAKE_ACCOUNT);
+            uint256 usdcBefore = sKipu.balanceOf(FAKE_ACCOUNT);
 
-        vm.stopPrank();
+            // Call to make a ERC20 deposit.
+            sKipu.DepositErc20(amountIn[i], token[i]);
 
-        console.log("USDC in account before:", usdcBefore);
-        console.log("USDC in account after:" , usdcAfter);
-        assertGt(usdcAfter, usdcBefore, "usdc amount didn't change");
+            uint256 usdcAfter = sKipu.balanceOf(FAKE_ACCOUNT);
 
-        console.log("Test finished");
+            vm.stopPrank();
+
+            console.log("USDC in account before:", usdcBefore);
+            console.log("USDC in account after:" , usdcAfter);
+            assertGt(usdcAfter, usdcBefore, "USDC amount didn't change");
+
+            console.log("Test finished\n");
+        }
+    }
+
+    function test_DepositEth() public {
+
+            console.log("Starting test of token ETH");
+
+            // Test with FAKE_ACCOUNT
+            vm.startPrank(FAKE_ACCOUNT);
+
+            // Previously: Approve swap to transfer WETH from FAKE_ACCOUNT
+            //IERC20(token[i]).approve(address(sKipu), amountIn[i]);
+
+            //uint256 usdcBefore = usdc.balanceOf(FAKE_ACCOUNT);
+            uint256 usdcBefore = sKipu.balanceOf(FAKE_ACCOUNT);
+
+            // Call to make a ERC20 deposit.
+            sKipu.DepositEth{value: 0.0001 ether}();
+
+            uint256 usdcAfter = sKipu.balanceOf(FAKE_ACCOUNT);
+
+            vm.stopPrank();
+
+            console.log("USDC in account before:", usdcBefore);
+            console.log("USDC in account after:" , usdcAfter);
+            assertGt(usdcAfter, usdcBefore, "USDC amount didn't change");
+
+            console.log("Test finished\n");
     }
 }

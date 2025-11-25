@@ -206,28 +206,48 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
         uint[] memory amountsOut = ROUTER.getAmountsOut(msg.value, path);
         uint256 amountInUsd = amountsOut[1];
 
-        // Chequear con un margen de error del 5% para cubrirse ante variaciones
-        bool bankStatus = _HasCapacityKipuBank(amountInUsd * 105 / 100);
+        // Chequear estado de KipuBank
+        bool bankStatus = _HasCapacityKipuBank(amountInUsd);
         if (!bankStatus)
         {
             revert KipuBankWithoutCapacity("KipuBank has no capacity to store more USD");
         }
 
-        // Ejecutar el swap
-        amountInUsd = swapExactEthForUSD();
-
         vault[usdc][msg.sender].totalDeposits++;
         vault[usdc][msg.sender].maxStored += amountInUsd;
 		vault[usdc][msg.sender].amount += amountInUsd;
-
-        // Actualizar billetera y emitir evento
-		emit DepositSuccessful(msg.sender, "Deposito realizado con exito");
 
         // Actualizar totalDeposits para trackeo interno
         _totalDepositsKipuBank++;
 
         // Update total balance (USD)
         _bankCapStatus += amountInUsd;
+
+        uint256 finalAmountInUsd;
+
+        // Ejecutar el swap con slippage del 1%
+        uint256 amountOutEstimated = (amountsOut[1] * 99 / 100);
+        finalAmountInUsd = swapExactEthForUSD(amountOutEstimated);
+
+        // Actualizar billetera y emitir evento
+		emit DepositSuccessful(msg.sender, "Deposito realizado con exito");
+
+        // Realizar ajustes finales
+        if(finalAmountInUsd != amountInUsd)
+        {
+            if (finalAmountInUsd - amountInUsd > 0)
+            {
+                vault[usdc][msg.sender].maxStored += (finalAmountInUsd - amountInUsd);
+                vault[usdc][msg.sender].amount += (finalAmountInUsd - amountInUsd);
+                _bankCapStatus += (finalAmountInUsd - amountInUsd);
+            }
+            else
+            {
+                vault[usdc][msg.sender].maxStored -= (amountInUsd - finalAmountInUsd);
+                vault[usdc][msg.sender].amount -= (amountInUsd - finalAmountInUsd);
+                _bankCapStatus -= (amountInUsd - finalAmountInUsd);
+            }
+        }
 	}
 
     /**
@@ -247,7 +267,7 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
             revert("DepositErc20: allowance insufficient");
         }
 
-        // Monto en USD a luego del swap
+        // Monto estimado en USD luego del swap
         uint256 amountInUsd = 0;
 
         // path: ERC20 -> USDC
@@ -255,8 +275,10 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
         path[0] = _erc20Addr;
         path[1] = usdc;
 
+        bool isUsdcToken = _erc20Addr == usdc;
+
         // No hacer swap si el deposito es en USDC
-        if (_erc20Addr == usdc)
+        if (isUsdcToken)
         {
             amountInUsd = _amount;
         }
@@ -266,34 +288,65 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
             amountInUsd = amountsOut[1];
         }
 
-        // Chequear con un margen de error del 5% para cubrirse ante variaciones
-        bool bankStatus = _HasCapacityKipuBank(amountInUsd * 105 / 100);
+        // Chequear estado de KipuBank
+        bool bankStatus = _HasCapacityKipuBank(amountInUsd);
         if (!bankStatus)
         {
             revert KipuBankWithoutCapacity("KipuBank has no capacity to store more USD");
-        }
-
-        _iErc20.safeTransferFrom(msg.sender, address(this), _amount);
-        _iErc20.safeIncreaseAllowance(address(ROUTER), _amount);
-
-        // Ejecutar el swap
-        if (_erc20Addr != usdc)
-        {
-            amountInUsd = swapExactErc20ForUSD(_erc20Addr, _amount);
         }
 
         vault[usdc][msg.sender].totalDeposits++;
         vault[usdc][msg.sender].maxStored += amountInUsd;
 		vault[usdc][msg.sender].amount += amountInUsd;
 
-        // Actualizar billetera y emitir evento
-		emit DepositSuccessful(msg.sender, "Deposito realizado con exito");
-
         // Actualizar totalDeposits para trackeo interno
         _totalDepositsKipuBank++;
 
         // Update total balance (USD)
         _bankCapStatus += amountInUsd;
+
+        // Balance previo al deposito
+        uint256 balanceBefore = _iErc20.balanceOf(address(this));
+
+        // Permitir que el contrato reciba tokens de la wallet
+        _iErc20.safeTransferFrom(msg.sender, address(this), _amount);
+
+        // Balance posterior al deposito
+        uint256 balanceAfter = _iErc20.balanceOf(address(this));
+        uint256 _amountReceived = balanceAfter - balanceBefore;
+
+        // El contrato autoriza al router la extraccion de los tokens para el posterior swap
+        _iErc20.safeIncreaseAllowance(address(ROUTER), _amountReceived);
+
+        uint256 finalAmountInUsd;
+
+        // Ejecutar el swap
+        if (!isUsdcToken)
+        {
+            // Ejecutar el swap con slippage del 1%
+            uint256 amountOutEstimated = (amountInUsd * 99 / 100);
+            finalAmountInUsd = swapExactErc20ForUSD(_erc20Addr, _amountReceived, amountOutEstimated);
+        }
+
+        // Emitir evento
+		emit DepositSuccessful(msg.sender, "Deposito realizado con exito");
+
+        // Realizar ajustes de saldo finales en caso de haber realizado swap de tokens
+        if(!isUsdcToken && finalAmountInUsd != amountInUsd)
+        {
+            if (finalAmountInUsd - amountInUsd > 0)
+            {
+                vault[usdc][msg.sender].maxStored += (finalAmountInUsd - amountInUsd);
+                vault[usdc][msg.sender].amount += (finalAmountInUsd - amountInUsd);
+                _bankCapStatus += (finalAmountInUsd - amountInUsd);
+            }
+            else
+            {
+                vault[usdc][msg.sender].maxStored -= (amountInUsd - finalAmountInUsd);
+                vault[usdc][msg.sender].amount -= (amountInUsd - finalAmountInUsd);
+                _bankCapStatus -= (amountInUsd - finalAmountInUsd);
+            }
+        }
     }
 
     /**
@@ -355,21 +408,19 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
     ///////////////////////*/
     /**
      * @notice Swap ETH -> USDC using Uniswap V2
+     * @param amountOutMin la minima cantidad USD que se espera recibir
      * @return The amount of USD swapped
      */
-    function swapExactEthForUSD() internal returns (uint256)
+    function swapExactEthForUSD(uint256 amountOutMin) internal returns (uint256)
     {
         // path: WETH -> USDC
         address[] memory path = new address[](2);
         path[0] = weth;
         path[1] = usdc;
 
-        uint256 amountOutMin = 1;
-        uint256 deadline = 9999999999;
-
         /* The ETH is sent to the Router, converted to WETH, exchanged for tokenOut,
         and the final token is sent directly back*/
-        uint[] memory amounts = ROUTER.swapExactETHForTokens{value: msg.value}(amountOutMin, path, address(this), deadline);
+        uint[] memory amounts = ROUTER.swapExactETHForTokens{value: msg.value}(amountOutMin, path, address(this), 9999999999);
 
         emit SwapExecuted(msg.value, amounts[amounts.length - 1]);
 
@@ -378,20 +429,20 @@ contract KipuBankV3 is Ownable, ReentrancyGuard {
 
     /**
      * @notice Swap ERC20 -> USDC using Uniswap V2
+     * @param addr ERC20 addr to be swaped
+     * @param _amount la cantidad de tokens a cambiar
+     * @param amountOutMin la minima cantidad USD que se espera recibir
      * @return The amount of USD swapped
      */
-    function swapExactErc20ForUSD(address addr, uint256 _amount) internal returns (uint256)
+    function swapExactErc20ForUSD(address addr, uint256 _amount, uint256 amountOutMin) internal returns (uint256)
     {
         // path: ERC20 -> USDC
         address[] memory path = new address[](2);
         path[0] = addr;
         path[1] = usdc;
 
-        uint256 amountOutMin = 1;
-        uint256 deadline = 9999999999;
-
         // Execute swap
-        uint[] memory amounts = ROUTER.swapExactTokensForTokens(_amount, amountOutMin, path, address(this), deadline);
+        uint[] memory amounts = ROUTER.swapExactTokensForTokens(_amount, amountOutMin, path, address(this), 9999999999);
 
         emit SwapExecuted(_amount, amounts[amounts.length - 1]);
 
