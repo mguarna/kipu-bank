@@ -46,7 +46,7 @@ Contrato desplegado en [red de test Sepolia](https://sepolia.etherscan.io/addres
 
 **IMPORTANTE:** No ha sido posible verificar el contrato desde Remix a pesar de varios intentos, siempre se obtuvo una diferencia de bytes. API URL utilizada de Sepolia: https://api.etherscan.io/v2.
 
-Direccion del contrato: 0xEA70307E1c850AEE32C3aB1f8cc4c2366Beda4f1
+Direccion del contrato: 0x0097E99E0d1f58A54cC5aB690c438ba544727DB8
 
 **Script para despliegue del contrato en red sepolia**
 - Disponible en script/kipubankv3_auto.sol
